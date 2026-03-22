@@ -1,0 +1,33 @@
+name: Sync .editorconfig
+
+# Runs automatically when a PR is opened, and can be re-triggered manually
+# via the Actions tab for any branch that has an open PR.
+#
+# Limitations:
+#   - Only works on PRs from the same repository (not forks), because the
+#     GITHUB_TOKEN cannot push to fork branches.
+
+on:
+  pull_request:
+    types: [opened]
+  workflow_dispatch:
+
+permissions:
+  contents: write       # to commit the updated .editorconfig
+  pull-requests: write  # to post/update the PR comment
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Check out the PR branch (head_ref) when triggered by a PR,
+          # or the dispatched branch (ref_name) when triggered manually.
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - uses: editorconfig-build/action@v1
+        with:
+          project-id: your-project-id
+          token: your-project-token
+          mode: apply

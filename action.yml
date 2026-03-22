@@ -1,0 +1,180 @@
+name: 'editorconfig.build'
+description: 'Validate or sync your .editorconfig against your editorconfig.build project'
+
+inputs:
+  project-id:
+    required: true
+    description: 'Project ID from editorconfig.build'
+  token:
+    required: true
+    description: 'Project token from editorconfig.build (not secret — prevents enumeration)'
+  mode:
+    required: false
+    default: 'validate'
+    description: "'validate' checks for drift and fails if out of sync; 'apply' updates the file and commits"
+  path:
+    required: false
+    default: '.editorconfig'
+    description: 'Path to the .editorconfig file in the repo'
+  github-token:
+    required: false
+    default: '${{ github.token }}'
+    description: 'GitHub token — needs contents: write and pull-requests: write for apply mode'
+  commit-message:
+    required: false
+    default: 'chore: sync .editorconfig from editorconfig.build'
+    description: 'Commit message used when apply mode writes changes'
+
+outputs:
+  diff:
+    description: 'Unified diff between remote and local configs (empty string if in sync)'
+    value: ${{ steps.compare.outputs.diff }}
+  in-sync:
+    description: "'true' if configs match, 'false' if they differ"
+    value: ${{ steps.compare.outputs.in_sync }}
+
+runs:
+  using: composite
+  steps:
+    - name: Fetch remote config
+      shell: bash
+      run: |
+        curl -fsSL \
+          "https://cdn.editorconfig.build/v1/projects/${{ inputs.project-id }}/${{ inputs.token }}/.editorconfig" \
+          -o /tmp/remote.editorconfig
+
+    - name: Compare
+      id: compare
+      shell: bash
+      run: |
+        # Treat a missing local file as empty so the diff shows the full addition
+        if [ ! -f "${{ inputs.path }}" ]; then
+          touch "${{ inputs.path }}"
+        fi
+
+        diff -u \
+          --label "current ${{ inputs.path }}" \
+          --label "editorconfig.build" \
+          "${{ inputs.path }}" /tmp/remote.editorconfig > /tmp/editorconfig.diff
+        EXIT_CODE=$?
+
+        if [ $EXIT_CODE -eq 0 ]; then
+          echo "in_sync=true" >> "$GITHUB_OUTPUT"
+        elif [ $EXIT_CODE -eq 1 ]; then
+          echo "in_sync=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "::error::Failed to compare .editorconfig files"
+          exit 1
+        fi
+
+        {
+          echo "diff<<__EDITORCONFIG_EOF__"
+          cat /tmp/editorconfig.diff
+          echo "__EDITORCONFIG_EOF__"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Fail on drift (validate mode)
+      if: inputs.mode == 'validate' && steps.compare.outputs.in_sync == 'false'
+      shell: bash
+      run: |
+        echo "::error file=${{ inputs.path }}::.editorconfig is out of sync with editorconfig.build. Run the apply workflow to update it."
+        echo ""
+        echo "Diff (current → editorconfig.build):"
+        cat /tmp/editorconfig.diff
+        exit 1
+
+    - name: Apply changes (apply mode)
+      if: inputs.mode == 'apply' && steps.compare.outputs.in_sync == 'false'
+      shell: bash
+      run: |
+        cp /tmp/remote.editorconfig "${{ inputs.path }}"
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add "${{ inputs.path }}"
+        git commit -m "${{ inputs.commit-message }}"
+        git push
+
+    - name: Get commit SHA
+      id: commit
+      if: inputs.mode == 'apply' && steps.compare.outputs.in_sync == 'false'
+      shell: bash
+      run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+    - name: Post PR comment (apply mode)
+      if: inputs.mode == 'apply'
+      uses: actions/github-script@v7
+      env:
+        DIFF: ${{ steps.compare.outputs.diff }}
+        IN_SYNC: ${{ steps.compare.outputs.in_sync }}
+        COMMIT_SHA: ${{ steps.commit.outputs.sha }}
+        EC_PATH: ${{ inputs.path }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const marker = '<!-- editorconfig-build-bot -->';
+          const inSync = process.env.IN_SYNC === 'true';
+          const diff = process.env.DIFF;
+          const sha = process.env.COMMIT_SHA;
+          const path = process.env.EC_PATH;
+
+          // Resolve PR number — works for both pull_request and workflow_dispatch triggers
+          let prNumber = context.payload.pull_request?.number;
+          if (!prNumber) {
+            const ref = context.ref.replace('refs/heads/', '');
+            const { data: prs } = await github.rest.pulls.list({
+              ...context.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${ref}`,
+              per_page: 1,
+            });
+            prNumber = prs[0]?.number;
+          }
+
+          if (!prNumber) {
+            core.info('No open PR found for this branch — skipping comment.');
+            return;
+          }
+
+          let body;
+          if (inSync) {
+            body = `${marker}
+          ## \`${path}\` already up to date
+
+          No changes — your \`${path}\` already matches the current [editorconfig.build](https://editorconfig.build) config.`;
+          } else {
+            body = `${marker}
+          ## \`${path}\` synced from editorconfig.build
+
+          The \`${path}\` has been updated to match your project's current config.
+
+          **Commit:** ${sha}
+
+          <details>
+          <summary>Changes</summary>
+
+          \`\`\`diff
+          ${diff}
+          \`\`\`
+
+          </details>`;
+          }
+
+          const { data: comments } = await github.rest.issues.listComments({
+            ...context.repo,
+            issue_number: prNumber,
+          });
+          const existing = comments.find(c => c.body.includes(marker));
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              ...context.repo,
+              comment_id: existing.id,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: prNumber,
+              body,
+            });
+          }
