@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: editorconfig-build/action@v1
+      - uses: artiomchi/editorconfig@v1
         with:
           project-id: your-project-id
           token: your-project-token
@@ -56,7 +56,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-      - uses: editorconfig-build/action@v1
+      - uses: artiomchi/editorconfig@v1
         with:
           project-id: your-project-id
           token: your-project-token

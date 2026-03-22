@@ -42,22 +42,27 @@ runs:
         curl -fsSL \
           "https://cdn.editorconfig.build/v1/projects/${{ inputs.project-id }}/${{ inputs.token }}/.editorconfig" \
           -o /tmp/remote.editorconfig
+        echo "::debug::Remote .editorconfig fetched successfully, size: $(wc -c < /tmp/remote.editorconfig) bytes"
 
     - name: Compare
       id: compare
       shell: bash
       run: |
         # Treat a missing local file as empty so the diff shows the full addition
+        echo "::debug::Checking for local .editorconfig at '${{ inputs.path }}'"
         if [ ! -f "${{ inputs.path }}" ]; then
           touch "${{ inputs.path }}"
         fi
 
+        echo "::debug::Comparing local .editorconfig at '${{ inputs.path }}' with remote version"
+        EXIT_CODE=0
         diff -u \
           --label "current ${{ inputs.path }}" \
           --label "editorconfig.build" \
-          "${{ inputs.path }}" /tmp/remote.editorconfig > /tmp/editorconfig.diff
-        EXIT_CODE=$?
+          "${{ inputs.path }}" /tmp/remote.editorconfig > /tmp/editorconfig.diff \
+          || EXIT_CODE=$?
 
+        echo "::debug::Testing if we get the expected exit codes from diff (0 for match, 1 for mismatch, 2 for error). Got: $EXIT_CODE"
         if [ $EXIT_CODE -eq 0 ]; then
           echo "in_sync=true" >> "$GITHUB_OUTPUT"
         elif [ $EXIT_CODE -eq 1 ]; then
@@ -67,6 +72,7 @@ runs:
           exit 1
         fi
 
+        echo "::debug::Returning diff output (empty if in sync)"
         {
           echo "diff<<__EDITORCONFIG_EOF__"
           cat /tmp/editorconfig.diff

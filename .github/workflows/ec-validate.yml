@@ -15,8 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: artiomchi/editorconfig@v1
+      - uses: artiomchi/editorconfig@main
         with:
-          project-id: your-project-id
-          token: your-project-token
+          project-id: ab_i3khV1YbJdAZe
+          token: CZOa8KicA7eH9_s8rLQmn7A1B-pS3KdEMvjgUSBjoVY
           # mode defaults to 'validate'

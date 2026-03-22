@@ -26,8 +26,8 @@ jobs:
           # or the dispatched branch (ref_name) when triggered manually.
           ref: ${{ github.head_ref || github.ref_name }}
 
-      - uses: artiomchi/editorconfig@v1
+      - uses: artiomchi/editorconfig@main
         with:
-          project-id: your-project-id
-          token: your-project-token
+          project-id: ab_i3khV1YbJdAZe
+          token: CZOa8KicA7eH9_s8rLQmn7A1B-pS3KdEMvjgUSBjoVY
           mode: apply
