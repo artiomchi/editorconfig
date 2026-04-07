@@ -28,6 +28,5 @@ jobs:
 
       - uses: artiomchi/editorconfig@v1
         with:
-          project-id: your-project-id
           token: your-project-token
           mode: apply

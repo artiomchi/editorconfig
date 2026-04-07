@@ -30,7 +30,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: artiomchi/editorconfig@v1
         with:
-          project-id: your-project-id
           token: your-project-token
 ```
 
@@ -58,7 +57,6 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
       - uses: artiomchi/editorconfig@v1
         with:
-          project-id: your-project-id
           token: your-project-token
           mode: apply
 ```
@@ -69,8 +67,7 @@ When a PR is opened the action will automatically commit the synced `.editorconf
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `project-id` | Yes | — | Project ID from editorconfig.build |
-| `token` | Yes | — | Project token from editorconfig.build (not secret — prevents enumeration) |
+| `token` | Yes | — | Project token from editorconfig.build |
 | `mode` | No | `validate` | `validate` or `apply` |
 | `path` | No | `.editorconfig` | Path to the `.editorconfig` file in the repo |
 | `github-token` | No | `${{ github.token }}` | GitHub token — needs `contents: write` and `pull-requests: write` for apply mode |

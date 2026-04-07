@@ -2,12 +2,9 @@ name: 'editorconfig.build'
 description: 'Validate or sync your .editorconfig against your editorconfig.build project'
 
 inputs:
-  project-id:
-    required: true
-    description: 'Project ID from editorconfig.build'
   token:
     required: true
-    description: 'Project token from editorconfig.build (not secret — prevents enumeration)'
+    description: 'Project token from editorconfig.build (found in project settings)'
   mode:
     required: false
     default: 'validate'
@@ -40,7 +37,7 @@ runs:
       shell: bash
       run: |
         curl -fsSL \
-          "https://cdn.editorconfig.build/v1/projects/${{ inputs.project-id }}/${{ inputs.token }}/.editorconfig" \
+          "https://cdn.editorconfig.build/v1/projects/${{ inputs.token }}/.editorconfig" \
           -o /tmp/remote.editorconfig
         echo "::debug::Remote .editorconfig fetched successfully, size: $(wc -c < /tmp/remote.editorconfig) bytes"
 

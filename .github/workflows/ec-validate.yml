@@ -17,6 +17,5 @@ jobs:
 
       - uses: artiomchi/editorconfig@main
         with:
-          project-id: ab_i3khV1YbJdAZe
-          token: CZOa8KicA7eH9_s8rLQmn7A1B-pS3KdEMvjgUSBjoVY
+          token: vQBvp39EJy49yjTGGkJXjhPb8KAylqlMO3A9a1rkYj1ycVF2ALIeAoeEJKN1L3Fr
           # mode defaults to 'validate'
