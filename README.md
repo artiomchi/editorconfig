@@ -11,45 +11,28 @@ GitHub Action that validates or syncs your `.editorconfig` against a project pub
 
 ## Usage
 
-### Validate — status check on PRs and main
+A single workflow handles both modes — the `mode` is set dynamically based on the trigger event:
+
+- `push` / `pull_request:synchronize` → **validate** (fail on drift)
+- `pull_request:opened` / `workflow_dispatch` → **apply** (commit & comment)
 
 ```yaml
-# .github/workflows/validate-editorconfig.yml
-name: Validate .editorconfig
+# .github/workflows/editorconfig.yml
+name: .editorconfig
 
 on:
   push:
     branches: [main]
   pull_request:
     types: [opened, synchronize]
-
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: artiomchi/editorconfig@v1
-        with:
-          token: your-project-token
-```
-
-### Apply — auto-sync on PR open, re-sync on demand
-
-```yaml
-# .github/workflows/sync-editorconfig.yml
-name: Sync .editorconfig
-
-on:
-  pull_request:
-    types: [opened]
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: write       # required for apply mode
+  pull-requests: write  # required for apply mode
 
 jobs:
-  sync:
+  editorconfig:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +41,7 @@ jobs:
       - uses: artiomchi/editorconfig@v1
         with:
           token: your-project-token
-          mode: apply
+          mode: ${{ (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'synchronize')) && 'validate' || 'apply' }}
 ```
 
 When a PR is opened the action will automatically commit the synced `.editorconfig` to the PR branch (if needed) and post a comment with the diff. Re-running via the Actions tab updates the comment in place rather than posting a duplicate.
@@ -87,4 +70,4 @@ Both are generated when you publish your project on [editorconfig.build](https:/
 ## Limitations
 
 - **Apply mode only works on PRs from the same repository.** The default `GITHUB_TOKEN` cannot push to fork branches, so PRs opened from forks will have the commit step skipped.
-- The apply workflow is intentionally triggered only on `pull_request: opened` (not `synchronize`) to avoid a loop — committing a change would otherwise re-trigger the workflow.
+- Apply mode is intentionally triggered only on `pull_request: opened` (not `synchronize`) to avoid a loop — committing a change would otherwise re-trigger the workflow.

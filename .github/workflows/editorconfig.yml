@@ -1,0 +1,38 @@
+name: .editorconfig
+
+# Runs as a status check on push and synchronize, and syncs (apply mode)
+# when a PR is opened or when triggered manually via the Actions tab.
+#
+# Mode is set dynamically:
+#   - push / pull_request:synchronize  →  validate (fail on drift)
+#   - pull_request:opened / workflow_dispatch  →  apply (commit & comment)
+#
+# Limitations:
+#   - Apply mode only works on PRs from the same repository (not forks), because
+#     the GITHUB_TOKEN cannot push to fork branches.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: write       # required for apply mode to commit the updated .editorconfig
+  pull-requests: write  # required for apply mode to post/update the PR comment
+
+jobs:
+  editorconfig:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Check out the PR branch (head_ref) when triggered by a PR,
+          # or the dispatched/pushed branch (ref_name) otherwise.
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - uses: artiomchi/editorconfig@main
+        with:
+          token: vQBvp39EJy49yjTGGkJXjhPb8KAylqlMO3A9a1rkYj1ycVF2ALIeAoeEJKN1L3Fr
+          mode: ${{ (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'synchronize')) && 'validate' || 'apply' }}
