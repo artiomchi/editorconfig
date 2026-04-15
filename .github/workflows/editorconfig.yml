@@ -26,6 +26,6 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
-      - uses: artiomchi/editorconfig@feat/node-rewrite
+      - uses: artiomchi/editorconfig@main
         with:
           token: vQBvp39EJy49yjTGGkJXjhPb8KAylqlMO3A9a1rkYj1ycVF2ALIeAoeEJKN1L3Fr
