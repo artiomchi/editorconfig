@@ -48,5 +48,5 @@ outputs:
     description: "'true' if configs match, 'false' if they differ"
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
