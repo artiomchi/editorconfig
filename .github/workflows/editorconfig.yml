@@ -1,26 +1,22 @@
 name: .editorconfig
 
-# Runs as a status check on push and synchronize, and syncs (apply mode)
-# when a PR is opened or when triggered manually via the Actions tab.
+# Validates .editorconfig against editorconfig.build on every push and PR.
+# If drift is detected on a PR, posts a comment instructing how to fix it.
+# Adding the "fix-editorconfig" label to the PR will have the action
+# write and commit the correct .editorconfig automatically.
 #
-# Mode is set dynamically:
-#   - push / pull_request:synchronize  →  validate (fail on drift)
-#   - pull_request:opened / workflow_dispatch  →  apply (commit & comment)
-#
-# Limitations:
-#   - Apply mode only works on PRs from the same repository (not forks), because
-#     the GITHUB_TOKEN cannot push to fork branches.
+# For checkbox-based opt-in instead of labels, set fix-trigger: checkbox
+# and add the issue_comment trigger (see examples/example.yml).
 
 on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize]
-  workflow_dispatch:
+    types: [opened, synchronize, labeled]
 
 permissions:
-  contents: write       # required for apply mode to commit the updated .editorconfig
-  pull-requests: write  # required for apply mode to post/update the PR comment
+  contents: write       # required to commit the fixed .editorconfig
+  pull-requests: write  # required to post/update PR comments and remove labels
 
 jobs:
   editorconfig:
@@ -28,11 +24,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Check out the PR branch (head_ref) when triggered by a PR,
-          # or the dispatched/pushed branch (ref_name) otherwise.
           ref: ${{ github.head_ref || github.ref_name }}
 
-      - uses: artiomchi/editorconfig@main
+      - uses: artiomchi/editorconfig@feat/node-rewrite
         with:
           token: vQBvp39EJy49yjTGGkJXjhPb8KAylqlMO3A9a1rkYj1ycVF2ALIeAoeEJKN1L3Fr
-          mode: ${{ (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'synchronize')) && 'validate' || 'apply' }}
