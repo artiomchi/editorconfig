@@ -1,3 +1,4 @@
+import { vi, describe, it, expect, beforeAll } from 'vitest';
 import { buildRemoteUrl, buildConfigUrl, fetchRemoteConfig, fetchProjectConfig } from '../src/fetch.js';
 
 const BASE = 'https://cdn.editorconfig.build/v1/projects';
@@ -19,7 +20,7 @@ describe('buildConfigUrl', () => {
 });
 
 describe('fetchRemoteConfig', () => {
-  const mockFetch = jest.fn();
+  const mockFetch = vi.fn();
   beforeAll(() => {
     global.fetch = mockFetch as unknown as typeof fetch;
   });
@@ -42,7 +43,7 @@ describe('fetchRemoteConfig', () => {
 });
 
 describe('fetchProjectConfig', () => {
-  const mockFetch = jest.fn();
+  const mockFetch = vi.fn();
   beforeAll(() => {
     global.fetch = mockFetch as unknown as typeof fetch;
   });
@@ -53,7 +54,12 @@ describe('fetchProjectConfig', () => {
     await expect(fetchProjectConfig('tok')).resolves.toEqual(obj);
   });
 
-  it('throws on non-2xx', async () => {
+  it('returns null on 404', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 404 });
+    await expect(fetchProjectConfig('tok')).resolves.toBeNull();
+  });
+
+  it('throws on non-2xx (non-404)', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
     await expect(fetchProjectConfig('tok')).rejects.toThrow('HTTP 500');
   });

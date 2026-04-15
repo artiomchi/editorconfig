@@ -1,8 +1,8 @@
 import * as core from '@actions/core';
-import type { GitHub } from '@actions/github/lib/utils.js';
+import * as github from '@actions/github';
 import type { CompareResult, Inputs } from './types.js';
 
-type OctokitInstance = InstanceType<typeof GitHub>;
+type OctokitInstance = ReturnType<typeof github.getOctokit>;
 
 const MARKER = '<!-- editorconfig-build-bot -->';
 const CTA_START = '<!-- cta:start -->';
@@ -64,7 +64,7 @@ async function findExistingComment(
     repo,
     issue_number: issueNumber,
   });
-  const found = comments.find(c => (c.body ?? '').includes(MARKER));
+  const found = comments.find((c: { body?: string | null }) => (c.body ?? '').includes(MARKER));
   if (!found) return undefined;
   return { id: found.id, body: found.body ?? '' };
 }

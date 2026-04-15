@@ -1,9 +1,10 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import * as core from '@actions/core';
 import { parseInputs } from '../src/inputs.js';
 
-jest.mock('@actions/core');
+vi.mock('@actions/core');
 
-const mockGetInput = jest.mocked(core.getInput);
+const mockGetInput = vi.mocked(core.getInput);
 
 function setupInputs(overrides: Record<string, string> = {}) {
   const defaults: Record<string, string> = {
@@ -24,7 +25,7 @@ function setupInputs(overrides: Record<string, string> = {}) {
 
 describe('parseInputs', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('returns defaults when only token is provided', () => {

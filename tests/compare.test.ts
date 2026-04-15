@@ -1,8 +1,9 @@
+import { vi, describe, it, expect } from 'vitest';
 import { compareConfigs } from '../src/compare.js';
 
-jest.mock('fs/promises', () => ({ readFile: jest.fn() }));
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { readFile } = require('fs/promises') as { readFile: jest.Mock };
+vi.mock('fs/promises', () => ({ readFile: vi.fn() }));
+
+const { readFile } = await import('fs/promises') as unknown as { readFile: ReturnType<typeof vi.fn> };
 
 describe('compareConfigs', () => {
   it('reports in-sync when content matches (normalized)', async () => {
@@ -51,6 +52,6 @@ describe('compareConfigs', () => {
   it('returns correct localLineCount', async () => {
     readFile.mockResolvedValueOnce('a\nb\nc\n');
     const result = await compareConfigs('.editorconfig', 'a\nb\nc\n');
-    expect(result.localLineCount).toBe(4); // 'a\nb\nc\n'.split('\n') → 4 parts
+    expect(result.localLineCount).toBe(4);
   });
 });

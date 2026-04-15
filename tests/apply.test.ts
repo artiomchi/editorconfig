@@ -1,17 +1,17 @@
-jest.mock('fs/promises', () => ({ writeFile: jest.fn() }));
-jest.mock('child_process', () => ({ execSync: jest.fn() }));
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { writeFile: mockWriteFile } = require('fs/promises') as { writeFile: jest.Mock };
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { execSync: mockExecSync } = require('child_process') as { execSync: jest.Mock };
+vi.mock('fs/promises', () => ({ writeFile: vi.fn() }));
+vi.mock('child_process', () => ({ execSync: vi.fn() }));
+
+const { writeFile: mockWriteFile } = await import('fs/promises') as unknown as { writeFile: ReturnType<typeof vi.fn> };
+const { execSync: mockExecSync } = await import('child_process') as unknown as { execSync: ReturnType<typeof vi.fn> };
 
 describe('applyFix', () => {
   beforeEach(() => {
     mockWriteFile.mockResolvedValue(undefined);
     mockExecSync.mockImplementation((cmd: string) => {
-      if (cmd.includes('rev-parse HEAD')) return 'abcdef1234567890\n' as unknown as Buffer;
-      return Buffer.from('');
+      if (cmd.includes('rev-parse HEAD')) return 'abcdef1234567890\n';
+      return '';
     });
     process.env.GITHUB_SERVER_URL = 'https://github.com';
     process.env.GITHUB_REPOSITORY = 'owner/repo';
@@ -28,7 +28,7 @@ describe('applyFix', () => {
 
 describe('removePrLabel', () => {
   it('calls removeLabel API', async () => {
-    const mockRemoveLabel = jest.fn().mockResolvedValue({});
+    const mockRemoveLabel = vi.fn().mockResolvedValue({});
     const octokit = { rest: { issues: { removeLabel: mockRemoveLabel } } } as unknown as Parameters<typeof import('../src/apply.js').removePrLabel>[0];
     const { removePrLabel } = await import('../src/apply.js');
     await removePrLabel(octokit, 'owner', 'repo', 1, 'fix-editorconfig');
@@ -37,7 +37,7 @@ describe('removePrLabel', () => {
 
   it('ignores 404 when label already removed', async () => {
     const err = Object.assign(new Error('Not found'), { status: 404 });
-    const mockRemoveLabel = jest.fn().mockRejectedValue(err);
+    const mockRemoveLabel = vi.fn().mockRejectedValue(err);
     const octokit = { rest: { issues: { removeLabel: mockRemoveLabel } } } as unknown as Parameters<typeof import('../src/apply.js').removePrLabel>[0];
     const { removePrLabel } = await import('../src/apply.js');
     await expect(removePrLabel(octokit, 'owner', 'repo', 1, 'fix-editorconfig')).resolves.not.toThrow();

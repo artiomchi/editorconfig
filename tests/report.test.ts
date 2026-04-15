@@ -1,17 +1,19 @@
+import { vi, describe, it, expect, beforeEach, beforeAll } from 'vitest';
 import * as core from '@actions/core';
 
-jest.mock('@actions/core');
-jest.mock('../src/fetch.js');
+vi.mock('@actions/core');
+vi.mock('../src/fetch.js');
 
 import { fetchProjectConfig } from '../src/fetch.js';
 import { reportStatus } from '../src/report.js';
 import type { Inputs, CompareResult } from '../src/types.js';
+import * as github from '@actions/github';
 
-const mockFetchProjectConfig = fetchProjectConfig as jest.MockedFunction<typeof fetchProjectConfig>;
-const mockWarning = core.warning as jest.MockedFunction<typeof core.warning>;
-const mockDebug = core.debug as jest.MockedFunction<typeof core.debug>;
+const mockFetchProjectConfig = vi.mocked(fetchProjectConfig);
+const mockWarning = vi.mocked(core.warning);
+const mockDebug = vi.mocked(core.debug);
 
-const mockFetch = jest.fn();
+const mockFetch = vi.fn();
 beforeAll(() => { global.fetch = mockFetch as unknown as typeof fetch; });
 
 function makeInputs(overrides: Partial<Inputs> = {}): Inputs {
@@ -48,12 +50,12 @@ function makeContext(eventName: string, ref: string, defaultBranch: string) {
     payload: {
       repository: { default_branch: defaultBranch, full_name: 'owner/repo' },
     },
-  } as unknown as import('@actions/github/lib/context.js').Context;
+  } as unknown as typeof github.context;
 }
 
 describe('reportStatus', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('returns early when reportStatus is false', async () => {
@@ -72,6 +74,13 @@ describe('reportStatus', () => {
     await reportStatus(makeInputs(), makeContext('push', 'refs/heads/main', 'main'), makeCompare());
     expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('network error'));
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('returns early when config is null (no config.json)', async () => {
+    mockFetchProjectConfig.mockResolvedValueOnce(null);
+    await reportStatus(makeInputs(), makeContext('push', 'refs/heads/main', 'main'), makeCompare());
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockDebug).toHaveBeenCalledWith(expect.stringContaining('No project config'));
   });
 
   it('returns early when reporting.enabled is false', async () => {

@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import * as core from '@actions/core';
-import type { Context } from '@actions/github/lib/context.js';
+import * as github from '@actions/github';
 import { fetchProjectConfig } from './fetch.js';
 import type { CompareResult, Inputs } from './types.js';
 
@@ -17,7 +17,7 @@ function checksumOf(content: string): string {
 
 export async function reportStatus(
   inputs: Inputs,
-  context: Context,
+  context: typeof github.context,
   compare: CompareResult,
 ): Promise<void> {
   if (!inputs.reportStatus) return;

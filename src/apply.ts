@@ -1,10 +1,10 @@
 import { writeFile } from 'fs/promises';
 import { execSync } from 'child_process';
 import * as core from '@actions/core';
-import type { GitHub } from '@actions/github/lib/utils.js';
+import * as github from '@actions/github';
 import { updateCommentWithFix } from './comment.js';
 
-type OctokitInstance = InstanceType<typeof GitHub>;
+type OctokitInstance = ReturnType<typeof github.getOctokit>;
 
 export interface ApplyResult {
   shortSha: string;
