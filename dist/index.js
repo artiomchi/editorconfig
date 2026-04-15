@@ -34160,6 +34160,7 @@ async function reportStatus(inputs, context, compare) {
         branch,
         inSync,
         tag: inputs.tag,
+        path: inputs.path,
         checksum,
     };
     // Remove undefined fields

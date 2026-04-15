@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-      - uses: artiomchi/editorconfig@v2
+      - uses: artiomchi/editorconfig@v1
         with:
           token: your-project-token
 ```
@@ -63,7 +63,7 @@ on:
 ```
 
 ```yaml
-      - uses: artiomchi/editorconfig@v2
+      - uses: artiomchi/editorconfig@v1
         with:
           token: your-project-token
           fix-trigger: checkbox

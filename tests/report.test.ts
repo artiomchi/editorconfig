@@ -98,6 +98,7 @@ describe('reportStatus', () => {
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body.inSync).toBe(true);
     expect(body.repository).toBe('owner/repo');
+    expect(body.path).toBe('.editorconfig');
     expect(body.checksum).toMatch(/^sha256:/);
   });
 
@@ -139,6 +140,14 @@ describe('reportStatus', () => {
     await reportStatus(makeInputs(), makeContext('push', 'refs/heads/main', 'main'), compare);
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body.checksum).toBeUndefined();
+  });
+
+  it('includes custom path in payload', async () => {
+    mockFetchProjectConfig.mockResolvedValueOnce({ reporting: { enabled: true } });
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200 });
+    await reportStatus(makeInputs({ path: 'configs/.editorconfig' }), makeContext('push', 'refs/heads/main', 'main'), makeCompare());
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(body.path).toBe('configs/.editorconfig');
   });
 
   it('includes tag in payload when provided', async () => {

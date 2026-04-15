@@ -32,7 +32,7 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
-      - uses: artiomchi/editorconfig@v2
+      - uses: artiomchi/editorconfig@v1
         with:
           token: your-project-token
           # Optional inputs (shown with their defaults):

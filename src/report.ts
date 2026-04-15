@@ -55,6 +55,7 @@ export async function reportStatus(
     branch,
     inSync,
     tag: inputs.tag,
+    path: inputs.path,
     checksum,
   };
   // Remove undefined fields
