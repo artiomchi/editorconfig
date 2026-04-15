@@ -1,26 +1,28 @@
 name: .editorconfig
 
-# Runs as a status check on push and synchronize, and syncs (apply mode)
-# when a PR is opened or when triggered manually via the Actions tab.
+# Validates .editorconfig against editorconfig.build on every push and PR.
+# When drift is detected on a PR, posts a comment describing it.
 #
-# Mode is set dynamically:
-#   - push / pull_request:synchronize  →  validate (fail on drift)
-#   - pull_request:opened / workflow_dispatch  →  apply (commit & comment)
+# Default behaviour (fix-trigger: label):
+#   Adding the "fix-editorconfig" label to the PR triggers the action to
+#   automatically write and commit the correct .editorconfig.
 #
-# Limitations:
-#   - Apply mode only works on PRs from the same repository (not forks), because
-#     the GITHUB_TOKEN cannot push to fork branches.
+# Alternative (fix-trigger: checkbox):
+#   The comment will contain a checkbox. Ticking it triggers the fix on the
+#   next run. To enable this, swap the on: block below and set fix-trigger: checkbox.
 
 on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize]
-  workflow_dispatch:
+    types: [opened, synchronize, labeled]
+  # Uncomment to use the checkbox opt-in instead of labels:
+  # issue_comment:
+  #   types: [edited]
 
 permissions:
-  contents: write       # required for apply mode to commit the updated .editorconfig
-  pull-requests: write  # required for apply mode to post/update the PR comment
+  contents: write       # required to commit the fixed .editorconfig
+  pull-requests: write  # required to post/update PR comments and remove labels
 
 jobs:
   editorconfig:
@@ -28,11 +30,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Check out the PR branch (head_ref) when triggered by a PR,
-          # or the dispatched/pushed branch (ref_name) otherwise.
           ref: ${{ github.head_ref || github.ref_name }}
 
-      - uses: artiomchi/editorconfig@v1
+      - uses: artiomchi/editorconfig@v2
         with:
           token: your-project-token
-          mode: ${{ (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'synchronize')) && 'validate' || 'apply' }}
+          # Optional inputs (shown with their defaults):
+          # tag: ''                         # pin to a published config version
+          # auto-fix: 'false'               # set true to commit fixes automatically
+          # fail-on-drift: 'true'           # set false to warn instead of failing
+          # pr-comment: 'true'              # set false to suppress PR comments
+          # fix-trigger: 'label'            # or 'checkbox'
+          # fix-label: 'fix-editorconfig'   # label name for the label trigger
+          # report-status: 'true'           # telemetry (gated by project config)
