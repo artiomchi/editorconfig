@@ -138,8 +138,23 @@ export async function postInSyncComment(
   prNumber: number,
   path: string,
 ): Promise<void> {
+  const existing = await findExistingComment(octokit, owner, repo, prNumber);
+  if (!existing) {
+    core.debug('No existing bot comment found — skipping in-sync comment');
+    return;
+  }
+  if (!existing.body.includes(CTA_START)) {
+    core.debug('Existing bot comment has no CTA — skipping in-sync update');
+    return;
+  }
   const body = buildInSyncBody(path);
-  await upsertComment(octokit, owner, repo, prNumber, body);
+  await octokit.rest.issues.updateComment({
+    owner,
+    repo,
+    comment_id: existing.id,
+    body,
+  });
+  core.debug(`Updated existing bot comment #${existing.id} to in-sync`);
 }
 
 export async function hasCheckboxTicked(

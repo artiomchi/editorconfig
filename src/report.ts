@@ -31,7 +31,12 @@ export async function reportStatus(
     return;
   }
 
-  const reporting = config?.reporting ?? {};
+  if (config === null) {
+    core.debug('No project config found — reporting disabled');
+    return;
+  }
+
+  const reporting = config.reporting ?? {};
   if (!reporting.enabled) {
     core.debug('Reporting disabled by project config (reporting.enabled is not true)');
     return;

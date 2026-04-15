@@ -22,9 +22,10 @@ export async function fetchRemoteConfig(token: string, tag: string | undefined):
   return res.text();
 }
 
-export async function fetchProjectConfig(token: string): Promise<ProjectConfig> {
+export async function fetchProjectConfig(token: string): Promise<ProjectConfig | null> {
   const url = buildConfigUrl(token);
   const res = await fetch(url);
+  if (res.status === 404) return null;
   if (!res.ok) {
     throw new Error(`Failed to fetch project config (HTTP ${res.status}): ${url}`);
   }
