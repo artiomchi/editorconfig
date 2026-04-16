@@ -121,6 +121,14 @@ describe('reportStatus', () => {
     expect(body.isDefaultBranch).toBe(false);
   });
 
+  it('warns on 400 and logs response body', async () => {
+    mockFetchProjectConfig.mockResolvedValueOnce({ reporting: { enabled: true } });
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 400, text: async () => 'invalid payload: missing repository' });
+    await reportStatus(makeInputs(), makeContext('push', 'refs/heads/main', 'main'), makeCompare());
+    expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('400'));
+    expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('invalid payload: missing repository'));
+  });
+
   it('warns on 401', async () => {
     mockFetchProjectConfig.mockResolvedValueOnce({ reporting: { enabled: true } });
     mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });

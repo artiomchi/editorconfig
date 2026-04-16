@@ -37198,6 +37198,7 @@ async function reportStatus(inputs, context, compare) {
         repository,
         branch,
         inSync,
+        isDefaultBranch: onDefaultBranch,
         tag: inputs.tag,
         path: inputs.path,
         checksum,
@@ -37218,6 +37219,10 @@ async function reportStatus(inputs, context, compare) {
         });
         if (res.status === 401) {
             warning('Report endpoint rejected the token (HTTP 401)');
+        }
+        else if (res.status === 400) {
+            const body = await res.text();
+            warning(`Report failed (HTTP 400): ${body}`);
         }
         else if (!res.ok) {
             warning(`Report failed (HTTP ${res.status})`);

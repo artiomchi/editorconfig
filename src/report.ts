@@ -81,6 +81,9 @@ export async function reportStatus(
 
     if (res.status === 401) {
       core.warning('Report endpoint rejected the token (HTTP 401)');
+    } else if (res.status === 400) {
+      const body = await res.text();
+      core.warning(`Report failed (HTTP 400): ${body}`);
     } else if (!res.ok) {
       core.warning(`Report failed (HTTP ${res.status})`);
     } else {
