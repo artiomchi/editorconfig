@@ -1,6 +1,6 @@
 name: .editorconfig
 
-# Validates .editorconfig against editorconfig.build on every push and PR.
+# Validates .editorconfig against editorconfig.build on every push to main branch and PR.
 # When drift is detected on a PR, posts a comment describing it.
 #
 # Default behaviour (fix-trigger: label):
@@ -28,7 +28,7 @@ jobs:
   editorconfig:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 

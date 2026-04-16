@@ -7,7 +7,7 @@ GitHub Action that validates or syncs your `.editorconfig` against a project pub
 
 ## How it works
 
-The action runs on every push and pull request. When drift is detected:
+The action runs on every push to main branch and pull request. When drift is detected:
 
 - **On a PR** — posts (or updates) a comment describing the drift. Depending on your configuration, the comment will either prompt you to add a label (`fix-editorconfig`) or tick a checkbox to trigger the automatic fix.
 - **On push to main** — reports sync status to editorconfig.build (if telemetry is enabled in your project's config).
@@ -32,7 +32,7 @@ jobs:
   editorconfig:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.head_ref || github.ref_name }}
       - uses: artiomchi/editorconfig@v1

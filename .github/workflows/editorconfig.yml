@@ -1,12 +1,9 @@
 name: .editorconfig
 
-# Validates .editorconfig against editorconfig.build on every push and PR.
+# Validates .editorconfig against editorconfig.build on every push to main branch and PR.
 # If drift is detected on a PR, posts a comment instructing how to fix it.
 # Adding the "fix-editorconfig" label to the PR will have the action
 # write and commit the correct .editorconfig automatically.
-#
-# For checkbox-based opt-in instead of labels, set fix-trigger: checkbox
-# and add the issue_comment trigger (see examples/example.yml).
 
 on:
   push:
@@ -22,10 +19,10 @@ jobs:
   editorconfig:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
       - uses: artiomchi/editorconfig@main
         with:
-          token: vQBvp39EJy49yjTGGkJXjhPb8KAylqlMO3A9a1rkYj1ycVF2ALIeAoeEJKN1L3Fr
+          token: ${{ vars.EDITORCONFIG_TOKEN }}
