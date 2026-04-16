@@ -109,6 +109,7 @@ describe('reportStatus', () => {
     expect(body.repository).toBe('owner/repo');
     expect(body.path).toBe('.editorconfig');
     expect(body.checksum).toMatch(/^sha256:/);
+    expect(body.isDefaultBranch).toBe(true);
   });
 
   it('sends report when allBranches is true (non-default branch)', async () => {
@@ -117,6 +118,7 @@ describe('reportStatus', () => {
     await reportStatus(makeInputs(), makeContext('push', 'refs/heads/feature', 'main'), makeCompare(false));
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body.inSync).toBe(false);
+    expect(body.isDefaultBranch).toBe(false);
   });
 
   it('warns on 401', async () => {

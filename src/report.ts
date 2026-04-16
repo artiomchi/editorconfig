@@ -59,6 +59,7 @@ export async function reportStatus(
     repository,
     branch,
     inSync,
+    isDefaultBranch: onDefaultBranch,
     tag: inputs.tag,
     path: inputs.path,
     checksum,
