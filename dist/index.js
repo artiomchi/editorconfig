@@ -37370,7 +37370,7 @@ async function applyFix(localPath, remoteContent) {
     await (0,promises_namespaceObject.writeFile)(localPath, remoteContent, 'utf8');
     core_debug(`Written remote content to ${localPath}`);
     (0,external_child_process_namespaceObject.execSync)('git config user.name "github-actions[bot]"', { stdio: 'inherit' });
-    (0,external_child_process_namespaceObject.execSync)('git config user.email "github-actions[bot]@users.noreply.github.com"', { stdio: 'inherit' });
+    (0,external_child_process_namespaceObject.execSync)('git config user.email "41898282+github-actions[bot]@users.noreply.github.com"', { stdio: 'inherit' });
     (0,external_child_process_namespaceObject.execSync)(`git add "${localPath}"`, { stdio: 'inherit' });
     (0,external_child_process_namespaceObject.execSync)('git commit -m "chore: sync .editorconfig from editorconfig.build"', { stdio: 'inherit' });
     (0,external_child_process_namespaceObject.execSync)('git push', { stdio: 'inherit' });

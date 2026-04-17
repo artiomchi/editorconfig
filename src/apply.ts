@@ -19,7 +19,7 @@ export async function applyFix(
   core.debug(`Written remote content to ${localPath}`);
 
   execSync('git config user.name "github-actions[bot]"', { stdio: 'inherit' });
-  execSync('git config user.email "github-actions[bot]@users.noreply.github.com"', { stdio: 'inherit' });
+  execSync('git config user.email "41898282+github-actions[bot]@users.noreply.github.com"', { stdio: 'inherit' });
   execSync(`git add "${localPath}"`, { stdio: 'inherit' });
   execSync('git commit -m "chore: sync .editorconfig from editorconfig.build"', { stdio: 'inherit' });
   execSync('git push', { stdio: 'inherit' });
