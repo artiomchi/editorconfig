@@ -58,6 +58,7 @@ export async function reportStatus(
   const payload: Record<string, string | undefined | boolean> = {
     repository,
     branch,
+    sha: context.sha,
     inSync,
     isDefaultBranch: onDefaultBranch,
     tag: inputs.tag,
@@ -80,16 +81,16 @@ export async function reportStatus(
     });
 
     if (res.status === 401) {
-      core.warning('Report endpoint rejected the token (HTTP 401)');
+      core.warning('Sync status update rejected the token (HTTP 401)');
     } else if (res.status === 400) {
       const body = await res.text();
-      core.warning(`Report failed (HTTP 400): ${body}`);
+      core.warning(`Sync status update failed (HTTP 400): ${body}`);
     } else if (!res.ok) {
-      core.warning(`Report failed (HTTP ${res.status})`);
+      core.warning(`Sync status update failed (HTTP ${res.status})`);
     } else {
-      core.debug(`Reported status "${inSync ? 'in sync' : 'out of sync'}" for ${repository}@${branch}`);
+      core.info(`Sync status updated successfully: "${inSync ? 'in sync' : 'out of sync'}" for ${repository}@${branch}`);
     }
   } catch (err: unknown) {
-    core.warning(`Report request failed: ${(err as Error).message}`);
+    core.warning(`Sync status update failed: ${(err as Error).message}`);
   }
 }

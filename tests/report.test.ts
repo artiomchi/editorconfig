@@ -12,6 +12,7 @@ import * as github from '@actions/github';
 const mockFetchProjectConfig = vi.mocked(fetchProjectConfig);
 const mockWarning = vi.mocked(core.warning);
 const mockDebug = vi.mocked(core.debug);
+const mockInfo = vi.mocked(core.info);
 
 const mockFetch = vi.fn();
 beforeAll(() => { global.fetch = mockFetch as unknown as typeof fetch; });
@@ -43,10 +44,11 @@ function makeCompare(inSync = true): CompareResult {
   };
 }
 
-function makeContext(eventName: string, ref: string, defaultBranch: string) {
+function makeContext(eventName: string, ref: string, defaultBranch: string, sha = 'abc1234') {
   return {
     eventName,
     ref,
+    sha,
     payload: {
       repository: { default_branch: defaultBranch, full_name: 'owner/repo' },
     },
@@ -107,9 +109,11 @@ describe('reportStatus', () => {
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body.inSync).toBe(true);
     expect(body.repository).toBe('owner/repo');
+    expect(body.sha).toBe('abc1234');
     expect(body.path).toBe('.editorconfig');
     expect(body.checksum).toMatch(/^sha256:/);
     expect(body.isDefaultBranch).toBe(true);
+    expect(mockInfo).toHaveBeenCalledWith(expect.stringContaining('Sync status updated successfully'));
   });
 
   it('sends report when allBranches is true (non-default branch)', async () => {
@@ -147,6 +151,7 @@ describe('reportStatus', () => {
     mockFetchProjectConfig.mockResolvedValueOnce({ reporting: { enabled: true } });
     mockFetch.mockRejectedValueOnce(new Error('ECONNREFUSED'));
     await reportStatus(makeInputs(), makeContext('push', 'refs/heads/main', 'main'), makeCompare());
+    expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('Sync status update failed'));
     expect(mockWarning).toHaveBeenCalledWith(expect.stringContaining('ECONNREFUSED'));
   });
 
