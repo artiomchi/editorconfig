@@ -5,6 +5,7 @@ export interface Inputs {
   autoFix: boolean;
   failOnDrift: boolean;
   prComment: boolean;
+  jobSummary: boolean;
   fixTrigger: 'label' | 'checkbox';
   fixLabel: string;
   reportStatus: boolean;

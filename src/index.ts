@@ -15,6 +15,12 @@ import {
   checkoutPrHead,
   removePrLabel,
 } from './apply.js';
+import {
+  buildDriftSummary,
+  buildFixedSummary,
+  buildInSyncSummary,
+  writeSummary,
+} from './summary.js';
 
 async function run(): Promise<void> {
   const inputs = parseInputs();
@@ -47,7 +53,8 @@ async function run(): Promise<void> {
     if (headRef) await checkoutPrHead(headRef);
 
     const remoteContent = await fetchRemoteConfig(inputs.token, inputs.tag);
-    await applyAndUpdateComment(octokit, owner, repo, prNumber, inputs.path, remoteContent);
+    const result = await applyAndUpdateComment(octokit, owner, repo, prNumber, inputs.path, remoteContent);
+    if (inputs.jobSummary) await writeSummary(buildFixedSummary(inputs.path, result.shortSha, result.commitUrl));
     await removePrLabel(octokit, owner, repo, prNumber, inputs.fixLabel);
     return;
   }
@@ -63,7 +70,8 @@ async function run(): Promise<void> {
     await checkoutPrHead(pr.head.ref);
 
     const remoteContent = await fetchRemoteConfig(inputs.token, inputs.tag);
-    await applyAndUpdateComment(octokit, owner, repo, prNumber, inputs.path, remoteContent);
+    const result = await applyAndUpdateComment(octokit, owner, repo, prNumber, inputs.path, remoteContent);
+    if (inputs.jobSummary) await writeSummary(buildFixedSummary(inputs.path, result.shortSha, result.commitUrl));
     return;
   }
 
@@ -79,6 +87,7 @@ async function run(): Promise<void> {
     if (inputs.prComment && prNumber) {
       await postInSyncComment(octokit, owner, repo, prNumber, inputs.path);
     }
+    if (inputs.jobSummary) await writeSummary(buildInSyncSummary(inputs.path));
     // Report even when in sync (so the server knows about healthy repos)
     await reportStatus(inputs, context, compare);
     return;
@@ -94,15 +103,17 @@ async function run(): Promise<void> {
   if (inputs.autoFix && !isFork) {
     // Auto-fix: write + commit, then optionally post a comment confirming it
     core.info('auto-fix enabled — applying fix');
-    if (prNumber && inputs.prComment) {
-      await applyAndUpdateComment(octokit, owner, repo, prNumber, inputs.path, remoteContent);
-    } else {
-      const { shortSha } = await applyFix(inputs.path, remoteContent);
-      core.info(`Applied fix in ${shortSha}`);
-    }
-  } else if (inputs.prComment && prNumber) {
+    const result = prNumber && inputs.prComment
+      ? await applyAndUpdateComment(octokit, owner, repo, prNumber, inputs.path, remoteContent)
+      : await applyFix(inputs.path, remoteContent);
+    core.info(`Applied fix in ${result.shortSha}`);
+    if (inputs.jobSummary) await writeSummary(buildFixedSummary(inputs.path, result.shortSha, result.commitUrl));
+  } else {
     // Post drift comment (with label/checkbox CTA or fork-only read-only message)
-    await postDriftComment(octokit, owner, repo, prNumber, inputs, compare, isFork);
+    if (inputs.prComment && prNumber) {
+      await postDriftComment(octokit, owner, repo, prNumber, inputs, compare, isFork);
+    }
+    if (inputs.jobSummary) await writeSummary(buildDriftSummary(inputs, compare, isFork, prNumber));
   }
 
   if (inputs.failOnDrift) {

@@ -18,6 +18,7 @@ export function parseInputs(): Inputs {
   const autoFix = getBool('auto-fix', false);
   const failOnDrift = getBool('fail-on-drift', true);
   const prComment = getBool('pr-comment', true);
+  const jobSummary = getBool('job-summary', true);
   const reportStatus = getBool('report-status', true);
 
   const fixTriggerRaw = core.getInput('fix-trigger') || 'label';
@@ -30,5 +31,5 @@ export function parseInputs(): Inputs {
 
   const githubToken = core.getInput('github-token') || process.env.GITHUB_TOKEN || '';
 
-  return { token, tag, path, autoFix, failOnDrift, prComment, fixTrigger, fixLabel, reportStatus, githubToken };
+  return { token, tag, path, autoFix, failOnDrift, prComment, jobSummary, fixTrigger, fixLabel, reportStatus, githubToken };
 }

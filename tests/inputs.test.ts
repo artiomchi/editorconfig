@@ -14,6 +14,7 @@ function setupInputs(overrides: Record<string, string> = {}) {
     'auto-fix': '',
     'fail-on-drift': '',
     'pr-comment': '',
+    'job-summary': '',
     'fix-trigger': '',
     'fix-label': '',
     'report-status': '',
@@ -37,6 +38,7 @@ describe('parseInputs', () => {
     expect(inputs.autoFix).toBe(false);
     expect(inputs.failOnDrift).toBe(true);
     expect(inputs.prComment).toBe(true);
+    expect(inputs.jobSummary).toBe(true);
     expect(inputs.fixTrigger).toBe('label');
     expect(inputs.fixLabel).toBe('fix-editorconfig');
     expect(inputs.reportStatus).toBe(true);
@@ -65,6 +67,11 @@ describe('parseInputs', () => {
   it('parses pr-comment false', () => {
     setupInputs({ token: 'abc', 'pr-comment': 'false' });
     expect(parseInputs().prComment).toBe(false);
+  });
+
+  it('parses job-summary false', () => {
+    setupInputs({ token: 'abc', 'job-summary': 'false' });
+    expect(parseInputs().jobSummary).toBe(false);
   });
 
   it('parses fix-trigger checkbox', () => {

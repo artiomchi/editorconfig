@@ -43,9 +43,10 @@ export async function applyAndUpdateComment(
   prNumber: number,
   localPath: string,
   remoteContent: string,
-): Promise<void> {
-  const { shortSha, commitUrl } = await applyFix(localPath, remoteContent);
-  await updateCommentWithFix(octokit, owner, repo, prNumber, shortSha, commitUrl);
+): Promise<ApplyResult> {
+  const result = await applyFix(localPath, remoteContent);
+  await updateCommentWithFix(octokit, owner, repo, prNumber, result.shortSha, result.commitUrl);
+  return result;
 }
 
 export async function checkoutPrHead(headRef: string): Promise<void> {

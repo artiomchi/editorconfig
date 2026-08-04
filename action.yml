@@ -24,6 +24,10 @@ inputs:
     required: false
     default: 'true'
     description: 'Whether to post (or update) a PR comment describing the drift and how to fix it'
+  job-summary:
+    required: false
+    default: 'true'
+    description: 'Whether to write a job summary describing the sync result, even when no PR is open'
   fix-trigger:
     required: false
     default: 'label'

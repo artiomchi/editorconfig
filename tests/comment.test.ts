@@ -17,6 +17,7 @@ function makeInputs(overrides: Partial<Inputs> = {}): Inputs {
     autoFix: false,
     failOnDrift: true,
     prComment: true,
+    jobSummary: true,
     fixTrigger: 'label',
     fixLabel: 'fix-editorconfig',
     reportStatus: true,

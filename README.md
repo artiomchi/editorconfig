@@ -11,6 +11,7 @@ The action runs on every push to main branch and pull request. When drift is det
 
 - **On a PR** — posts (or updates) a comment describing the drift. Depending on your configuration, the comment will either prompt you to add a label (`fix-editorconfig`) or tick a checkbox to trigger the automatic fix.
 - **On push to main** — reports sync status to editorconfig.build (if telemetry is enabled in your project's config).
+- **Every run** — writes a job summary with the sync result and, if any, the action needed to fix it. This shows up on the workflow run page even when there's no open PR to comment on (e.g. a push to main, or `workflow_dispatch`).
 
 ## Usage
 
@@ -79,6 +80,7 @@ on:
 | `auto-fix` | No | `false` | If `true`, write and commit the canonical `.editorconfig` automatically when drift is detected (no label/checkbox needed) |
 | `fail-on-drift` | No | `true` | If `false`, emit a warning instead of failing when drift is detected |
 | `pr-comment` | No | `true` | Whether to post (or update) a PR comment |
+| `job-summary` | No | `true` | Whether to write a job summary describing the sync result, even when no PR is open |
 | `fix-trigger` | No | `label` | Opt-in mechanism when `auto-fix` is `false`: `label` or `checkbox` |
 | `fix-label` | No | `fix-editorconfig` | Label name the action listens for when `fix-trigger: label` |
 | `report-status` | No | `true` | Whether to report sync status to editorconfig.build for telemetry/dashboard purposes (only if enabled on project) |
